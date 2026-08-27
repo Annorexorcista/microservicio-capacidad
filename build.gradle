@@ -1,0 +1,70 @@
+plugins {
+    id 'org.springframework.boot' version '3.3.4'
+    id 'io.spring.dependency-management' version '1.1.6'
+    id 'java'
+}
+
+group = 'com.bootcamp'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    jqwikVersion = '1.9.1'
+    testcontainersVersion = '1.20.4'
+    mockWebServerVersion = '4.12.0'
+}
+
+// Alinea la version de Testcontainers gestionada por el BOM de Spring Boot
+ext['testcontainers.version'] = testcontainersVersion
+
+// Fija la version de docker-java para compatibilidad con la API de Docker
+configurations.all {
+    resolutionStrategy.eachDependency { details ->
+        if (details.requested.group == 'com.github.docker-java') {
+            details.useVersion '3.4.0'
+        }
+    }
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+    implementation 'io.asyncer:r2dbc-mysql:1.3.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.6.0'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'io.projectreactor:reactor-test'
+    testImplementation "net.jqwik:jqwik:${jqwikVersion}"
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation "org.testcontainers:mysql:${testcontainersVersion}"
+    testImplementation "org.testcontainers:junit-jupiter:${testcontainersVersion}"
+    testImplementation "org.testcontainers:r2dbc:${testcontainersVersion}"
+    testImplementation "com.squareup.okhttp3:mockwebserver:${mockWebServerVersion}"
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+}
+
+// Permite aislar el directorio de build (util para ejecuciones paralelas/CI)
+if (project.hasProperty('buildDirName')) {
+    layout.buildDirectory = file("${rootDir}/${project.property('buildDirName')}")
+}
+
+test {
+    useJUnitPlatform {
+        includeEngines 'junit-jupiter', 'jqwik'
+    }
+    def dockerApiVersion = System.getenv('DOCKER_API_VERSION') ?: '1.44'
+    environment 'DOCKER_API_VERSION', dockerApiVersion
+    systemProperty 'api.version', dockerApiVersion
+}

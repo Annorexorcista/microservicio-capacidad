@@ -1,0 +1,38 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: capability-service
+  r2dbc:
+    url: ${DB_URL:r2dbc:mysql://localhost:3306/capability_db}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+    pool:
+      enabled: true
+      initial-size: 5
+      max-size: 20
+  # Ejecuta schema.sql al arrancar para crear las tablas si no existen.
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+
+# URL del microservicio de Tecnologia (Technology_Service) consumido via WebClient
+technology:
+  service:
+    url: ${TECHNOLOGY_SERVICE_URL:http://localhost:8080}
+
+# Documentacion OpenAPI / Swagger UI (springdoc)
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+  show-actuator: false
+
+logging:
+  level:
+    org.springframework.r2dbc: INFO
+    io.r2dbc.mysql: INFO

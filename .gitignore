@@ -1,0 +1,21 @@
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# OS
+.DS_Store
+Thumbs.db
+
+# jqwik (property-based testing) - stores failing samples between runs
+.jqwik-database
+# Salida temporal de ejecuciones de test / builds aislados
+gradle-test-output.txt
+build-task*/

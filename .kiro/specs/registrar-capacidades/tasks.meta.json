@@ -1,0 +1,370 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1. Setup del proyecto Gradle y estructura hexagonal": [
+      {
+        "executionId": "94b60f5c-aa73-46f9-b5b4-77460f7df469",
+        "chatSessionId": "sess_1d13603a-bd28-4c7b-a1df-f4728d707967",
+        "timestamp": 1787843961321
+      },
+      {
+        "executionId": "94b60f5c-aa73-46f9-b5b4-77460f7df469",
+        "chatSessionId": "sess_1d13603a-bd28-4c7b-a1df-f4728d707967",
+        "timestamp": 1787844367978
+      }
+    ],
+    "1.1 Crear `build.gradle`, `settings.gradle` y wrapper de Gradle": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844528400
+      },
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844603668
+      }
+    ],
+    "1.2 Crear la estructura de paquetes hexagonal y la clase principal": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844528463
+      },
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844605070
+      }
+    ],
+    "1.3 Crear `application.yml` y `schema.sql`": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844528510
+      },
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844606084
+      }
+    ],
+    "2.1 Implementar el modelo `Capability`": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844528547
+      },
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844614550
+      },
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844747773
+      }
+    ],
+    "2.2 Definir puertos": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844528601
+      },
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844750993
+      },
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844855594
+      }
+    ],
+    "2.3 Implementar excepciones de dominio y `DomainErrorCode`": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844528651
+      },
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844860806
+      },
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844998977
+      }
+    ],
+    "3.1 Implementar `validate` (normalización + sintaxis + cantidad + no repetición)": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844528699
+      },
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787845007297
+      },
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787845123478
+      }
+    ],
+    "3.2 Implementar `ensureNameIsUnique`, `ensureTechnologiesExist` y `registerCapability`": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844528747
+      },
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787845127290
+      },
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787845238991
+      }
+    ],
+    "3.3 Tests unitarios del usecase (StepVerifier/Mockito)": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844528793
+      },
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787845242683
+      },
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787845441703
+      }
+    ],
+    "4.1 Property 1: registro válido conserva datos normalizados y persiste": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844528833
+      },
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787845450399
+      }
+    ],
+    "4.2 Property 2: nombre duplicado se rechaza sin persistir": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844528885
+      }
+    ],
+    "4.3 Property 3: normalización por trim idempotente": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844528946
+      }
+    ],
+    "4.4 Property 4: nombre vacío/obligatorio rechazado sin persistir": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844528998
+      }
+    ],
+    "4.5 Property 5: descripción vacía/obligatoria rechazada sin persistir": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844529044
+      }
+    ],
+    "4.6 Property 6: nombre > 50 o descripción > 90 rechazados sin persistir": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844529085
+      }
+    ],
+    "4.7 Property 7: cantidad de tecnologías fuera de rango rechazada sin persistir": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844529119
+      }
+    ],
+    "4.8 Property 8: tecnologías repetidas rechazadas sin persistir": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844529163
+      }
+    ],
+    "4.9 Property 9: tecnología inexistente rechaza el registro sin persistir": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844529201
+      }
+    ],
+    "4.10 Property 10: invariante de no persistencia ante cualquier error": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844529249
+      }
+    ],
+    "5. Checkpoint - Dominio y usecase validados": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844529291
+      }
+    ],
+    "6.1 Entidades y repositorios": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844529330
+      }
+    ],
+    "6.2 `CapabilityEntityMapper` (conversiones puras dominio<->entidad)": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844529383
+      }
+    ],
+    "6.3 `CapabilityPersistenceAdapter`": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844529425
+      }
+    ],
+    "6.4 Tests de integración del adaptador con Testcontainers MySQL": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844529462
+      }
+    ],
+    "7.1 `TechnologyGatewayResponse` (DTO) y `TechnologyGatewayAdapter`": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844529535
+      }
+    ],
+    "7.2 Tests del gateway con MockWebServer": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844529582
+      }
+    ],
+    "8.1 `R2dbcConfig` (ReactiveTransactionManager + TransactionalOperator)": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844529634
+      }
+    ],
+    "8.2 `WebClientConfig` (bean WebClient con baseUrl del Technology_Service)": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844529683
+      }
+    ],
+    "8.3 `BeanConfiguration` (wiring: persistence adapter, gateway adapter, usecase, handler)": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844529734
+      }
+    ],
+    "8.4 `OpenApiConfiguration` (bean OpenAPI \"Capability Service API\")": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844529782
+      }
+    ],
+    "9.1 DTOs (`CapabilityRequest`, `CapabilityResponse`, `ErrorResponse`) y `CapabilityDtoMapper`": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844529832
+      }
+    ],
+    "9.2 `CapabilityHandler.register`": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844529883
+      }
+    ],
+    "9.3 `CapabilityRouter` con doc OpenAPI (`@RouterOperation`)": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844529932
+      }
+    ],
+    "9.4 `GlobalErrorWebExceptionHandler` (`@Order(-2)`)": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844529977
+      }
+    ],
+    "10.1 Tests de integración del endpoint con WebTestClient + Testcontainers MySQL + MockWebServer": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844530015
+      }
+    ],
+    "11.1 README del microservicio (funcionalidad, arquitectura hexagonal, Mono/Flux y operadores, WebClient, recorrido de una petición, reglas de negocio, API REST, pruebas)": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844530060
+      }
+    ],
+    "11.2 Checkpoint final - Ensure all tests pass": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844530102
+      }
+    ],
+    "2. Implementar el dominio puro (modelo, puertos, excepciones)": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787844999024
+      }
+    ],
+    "3. Implementar el caso de uso `CapabilityUseCase`": [
+      {
+        "executionId": "48d74dfa-ae8f-4975-96d8-649aa0dbc8bf",
+        "chatSessionId": "sess_009b55a7-e78a-4ae7-a134-bc80af19fa03",
+        "timestamp": 1787845441766
+      }
+    ]
+  }
+}

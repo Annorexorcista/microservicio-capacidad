@@ -1,0 +1,6 @@
+plugins {
+    // Permite a Gradle descubrir/descargar automaticamente el JDK del toolchain (Java 17)
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
+}
+
+rootProject.name = 'microservicio_capacidad'

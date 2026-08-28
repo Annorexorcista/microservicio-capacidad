@@ -2,6 +2,7 @@ package com.bootcamp.capability.infrastructure.adapters.driving.webflux.exceptio
 
 import com.bootcamp.capability.domain.exception.CapabilityAlreadyExistsException;
 import com.bootcamp.capability.domain.exception.InvalidCapabilityDataException;
+import com.bootcamp.capability.domain.exception.InvalidPageQueryException;
 import com.bootcamp.capability.domain.exception.TechnologiesNotFoundException;
 import com.bootcamp.capability.domain.exception.TechnologyValidationUnavailableException;
 import com.bootcamp.capability.infrastructure.adapters.driving.webflux.dto.ErrorResponse;
@@ -92,6 +93,12 @@ public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
                     HttpStatus.BAD_REQUEST,
                     invalidData.getCode().getCode(),
                     invalidData.getMessage());
+        }
+        if (error instanceof InvalidPageQueryException invalidPageQuery) {
+            return buildErrorResponse(
+                    HttpStatus.BAD_REQUEST,
+                    invalidPageQuery.getCode().getCode(),
+                    invalidPageQuery.getMessage());
         }
         if (error instanceof TechnologiesNotFoundException technologiesNotFound) {
             return buildErrorResponse(

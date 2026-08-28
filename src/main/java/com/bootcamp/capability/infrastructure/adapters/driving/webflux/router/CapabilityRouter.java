@@ -7,7 +7,10 @@ import com.bootcamp.capability.infrastructure.adapters.driving.webflux.dto.Capab
 import com.bootcamp.capability.infrastructure.adapters.driving.webflux.dto.CapabilityResponse;
 import com.bootcamp.capability.infrastructure.adapters.driving.webflux.dto.ErrorResponse;
 import com.bootcamp.capability.infrastructure.adapters.driving.webflux.handler.CapabilityHandler;
+import com.bootcamp.capability.infrastructure.adapters.driving.webflux.dto.CapabilityPageResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -95,11 +98,73 @@ public class CapabilityRouter {
                                             content = @Content(
                                                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                                                     schema = @Schema(implementation = ErrorResponse.class)))
+                            })),
+            @RouterOperation(
+                    path = CAPABILITIES_PATH,
+                    method = RequestMethod.GET,
+                    beanClass = ICapabilityServicePort.class,
+                    beanMethod = "listCapabilities",
+                    operation = @Operation(
+                            operationId = "listCapabilities",
+                            summary = "Lista las capacidades de forma paginada y ordenada",
+                            description = "Devuelve las capacidades paginadas (page, size) y "
+                                    + "ordenadas por nombre o por la cantidad de tecnologías "
+                                    + "asociadas, en dirección ascendente o descendente. Cada "
+                                    + "capacidad incluye sus tecnologías con id y nombre, "
+                                    + "resueltas con una única llamada por lotes al "
+                                    + "Technology_Service.",
+                            parameters = {
+                                    @Parameter(
+                                            name = "page",
+                                            in = ParameterIn.QUERY,
+                                            description = "Número de página (base cero). Default 0.",
+                                            schema = @Schema(type = "integer", defaultValue = "0")),
+                                    @Parameter(
+                                            name = "size",
+                                            in = ParameterIn.QUERY,
+                                            description = "Tamaño de página (1-100). Default 10.",
+                                            schema = @Schema(type = "integer", defaultValue = "10")),
+                                    @Parameter(
+                                            name = "sortBy",
+                                            in = ParameterIn.QUERY,
+                                            description = "Criterio de ordenamiento. Default name.",
+                                            schema = @Schema(type = "string",
+                                                    allowableValues = {"name", "technologyCount"},
+                                                    defaultValue = "name")),
+                                    @Parameter(
+                                            name = "sortDirection",
+                                            in = ParameterIn.QUERY,
+                                            description = "Dirección de ordenamiento. Default asc.",
+                                            schema = @Schema(type = "string",
+                                                    allowableValues = {"asc", "desc"},
+                                                    defaultValue = "asc"))
+                            },
+                            responses = {
+                                    @ApiResponse(
+                                            responseCode = "200",
+                                            description = "Página de capacidades",
+                                            content = @Content(
+                                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                                    schema = @Schema(implementation = CapabilityPageResponse.class))),
+                                    @ApiResponse(
+                                            responseCode = "400",
+                                            description = "Parámetros de paginación u ordenamiento inválidos",
+                                            content = @Content(
+                                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                                    schema = @Schema(implementation = ErrorResponse.class))),
+                                    @ApiResponse(
+                                            responseCode = "502",
+                                            description = "El Technology_Service no está disponible para "
+                                                    + "enriquecer las tecnologías",
+                                            content = @Content(
+                                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                                    schema = @Schema(implementation = ErrorResponse.class)))
                             }))
     })
     public RouterFunction<ServerResponse> capabilityRoutes(CapabilityHandler handler) {
         return RouterFunctions.route()
                 .POST(CAPABILITIES_PATH, accept(MediaType.APPLICATION_JSON), handler::register)
+                .GET(CAPABILITIES_PATH, accept(MediaType.APPLICATION_JSON), handler::list)
                 .build();
     }
 }

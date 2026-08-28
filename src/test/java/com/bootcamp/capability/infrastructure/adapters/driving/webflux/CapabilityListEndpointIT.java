@@ -110,18 +110,21 @@ class CapabilityListEndpointIT {
     @Autowired
     private R2dbcEntityTemplate entityTemplate;
 
+    private Long alfaId;
+    private Long betaId;
+
     @BeforeEach
     void seed() {
         capabilityTechnologyRepository.deleteAll().block();
         capabilityRepository.deleteAll().block();
 
         // Beta(1,2,3), Alfa(1), Gamma(1,2)
-        Long beta = capabilityRepository.save(new CapabilityEntity(null, "Beta", "d"))
+        betaId = capabilityRepository.save(new CapabilityEntity(null, "Beta", "d"))
                 .map(CapabilityEntity::getId).block();
-        insertTech(beta, 1L, 2L, 3L);
-        Long alfa = capabilityRepository.save(new CapabilityEntity(null, "Alfa", "d"))
+        insertTech(betaId, 1L, 2L, 3L);
+        alfaId = capabilityRepository.save(new CapabilityEntity(null, "Alfa", "d"))
                 .map(CapabilityEntity::getId).block();
-        insertTech(alfa, 1L);
+        insertTech(alfaId, 1L);
         Long gamma = capabilityRepository.save(new CapabilityEntity(null, "Gamma", "d"))
                 .map(CapabilityEntity::getId).block();
         insertTech(gamma, 1L, 2L);
@@ -295,5 +298,23 @@ class CapabilityListEndpointIT {
                 .expectStatus().isEqualTo(HttpStatus.BAD_GATEWAY)
                 .expectBody(ErrorResponse.class)
                 .value(err -> assertThat(err.status()).isEqualTo(HttpStatus.BAD_GATEWAY.value()));
+    }
+
+    // --- GET ?ids= : consulta por identificadores (consumo entre microservicios) ---
+
+    @Test
+    @DisplayName("GET ?ids= -> 200 con la lista de capacidades solicitadas y sus tecnologías")
+    void getByIds_returns200WithRequestedCapabilities() {
+        dispatchTechnologiesEcho();
+
+        // Se piden todas por id; se devuelven solo esas, cada una con sus tecnologías id+name.
+        webTestClient.get()
+                .uri("/api/v1/capabilities?ids=" + alfaId + "," + betaId)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.length()").isEqualTo(2)
+                .jsonPath("$[?(@.name=='Alfa')].technologies.length()").isEqualTo(1)
+                .jsonPath("$[?(@.name=='Beta')].technologies.length()").isEqualTo(3);
     }
 }

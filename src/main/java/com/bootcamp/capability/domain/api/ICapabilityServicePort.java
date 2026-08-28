@@ -4,7 +4,10 @@ import com.bootcamp.capability.domain.model.Capability;
 import com.bootcamp.capability.domain.model.CapabilityListItem;
 import com.bootcamp.capability.domain.model.CapabilityPageQuery;
 import com.bootcamp.capability.domain.model.PagedResult;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.Collection;
 
 /**
  * Puerto de entrada (api) del dominio para el registro de capacidades.
@@ -37,4 +40,17 @@ public interface ICapabilityServicePort {
      *         parámetros son inválidos o el Technology_Service no está disponible.
      */
     Mono<PagedResult<CapabilityListItem>> listCapabilities(CapabilityPageQuery query);
+
+    /**
+     * Recupera las capacidades correspondientes a los identificadores dados,
+     * cada una enriquecida con sus tecnologías (id y nombre) mediante una única
+     * llamada por lotes al Technology_Service. Pensado para el consumo entre
+     * microservicios (por ejemplo, el microservicio de Bootcamp), que necesita
+     * los datos completos de un conjunto concreto de capacidades.
+     *
+     * @param ids identificadores de capacidad a recuperar.
+     * @return un {@link Flux} de {@link CapabilityListItem} de las capacidades
+     *         existentes; vacío si {@code ids} es vacío.
+     */
+    Flux<CapabilityListItem> findCapabilitiesByIds(Collection<Long> ids);
 }

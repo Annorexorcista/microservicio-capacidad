@@ -137,7 +137,16 @@ public class CapabilityRouter {
                                             description = "Dirección de ordenamiento. Default asc.",
                                             schema = @Schema(type = "string",
                                                     allowableValues = {"asc", "desc"},
-                                                    defaultValue = "asc"))
+                                                    defaultValue = "asc")),
+                                    @Parameter(
+                                            name = "ids",
+                                            in = ParameterIn.QUERY,
+                                            description = "Consulta por identificadores (CSV, p. ej. "
+                                                    + "1,2,3) para el consumo entre microservicios. "
+                                                    + "Si se proporciona, ignora la paginación y "
+                                                    + "devuelve la lista de las capacidades indicadas "
+                                                    + "(cada una con sus tecnologías id+nombre).",
+                                            schema = @Schema(type = "string"))
                             },
                             responses = {
                                     @ApiResponse(

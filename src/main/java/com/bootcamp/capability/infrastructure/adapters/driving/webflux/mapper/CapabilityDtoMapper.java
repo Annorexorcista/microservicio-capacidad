@@ -154,7 +154,35 @@ public class CapabilityDtoMapper {
                 content);
     }
 
-    private CapabilityListItemResponse toListItemResponse(CapabilityListItem item) {
+    /**
+     * Parsea el query param {@code ids} (CSV de enteros, p. ej. {@code 1,2,3}) a
+     * una lista de identificadores. Devuelve lista vacía si el parámetro falta o
+     * está en blanco. Un valor no numérico produce {@link NumberFormatException},
+     * que el handler global traduce a 400.
+     *
+     * @param request solicitud del servidor.
+     * @return la lista de ids solicitados (posiblemente vacía).
+     */
+    public List<Long> parseIds(ServerRequest request) {
+        String raw = request.queryParam("ids").orElse(null);
+        if (raw == null || raw.isBlank()) {
+            return List.of();
+        }
+        return java.util.Arrays.stream(raw.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(Long::parseLong)
+                .toList();
+    }
+
+    /**
+     * Convierte un {@link CapabilityListItem} de dominio en su DTO de respuesta
+     * (id, name, description y tecnologías con id + name).
+     *
+     * @param item item de dominio a convertir.
+     * @return el DTO de respuesta equivalente.
+     */
+    public CapabilityListItemResponse toListItemResponse(CapabilityListItem item) {
         List<TechnologySummaryResponse> technologies = item.getTechnologies().stream()
                 .map(t -> new TechnologySummaryResponse(t.getId(), t.getName()))
                 .toList();

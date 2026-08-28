@@ -1,9 +1,22 @@
 package com.bootcamp.capability.infrastructure.adapters.driving.webflux.mapper;
 
+import com.bootcamp.capability.domain.exception.InvalidPageQueryException;
+import com.bootcamp.capability.domain.exception.PageErrorCode;
 import com.bootcamp.capability.domain.model.Capability;
+import com.bootcamp.capability.domain.model.CapabilityListItem;
+import com.bootcamp.capability.domain.model.CapabilityPageQuery;
+import com.bootcamp.capability.domain.model.CapabilitySortBy;
+import com.bootcamp.capability.domain.model.CapabilitySortDirection;
+import com.bootcamp.capability.domain.model.PagedResult;
+import com.bootcamp.capability.infrastructure.adapters.driving.webflux.dto.CapabilityListItemResponse;
+import com.bootcamp.capability.infrastructure.adapters.driving.webflux.dto.CapabilityPageResponse;
 import com.bootcamp.capability.infrastructure.adapters.driving.webflux.dto.CapabilityRequest;
 import com.bootcamp.capability.infrastructure.adapters.driving.webflux.dto.CapabilityResponse;
+import com.bootcamp.capability.infrastructure.adapters.driving.webflux.dto.TechnologySummaryResponse;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.server.ServerRequest;
+
+import java.util.List;
 
 /**
  * Mapper puro (sin I/O ni tipos reactivos) que convierte entre los DTOs de la
@@ -51,5 +64,101 @@ public class CapabilityDtoMapper {
                 capability.getName(),
                 capability.getDescription(),
                 capability.getTechnologyIds());
+    }
+
+    private static final int DEFAULT_PAGE = 0;
+    private static final int DEFAULT_SIZE = 10;
+
+    /**
+     * Construye un {@link CapabilityPageQuery} de dominio a partir de los query
+     * params de la solicitud, aplicando los defaults (page=0, size=10,
+     * sortBy=name, sortDirection=asc) cuando faltan y traduciendo
+     * {@code sortBy}/{@code sortDirection} a los enums de dominio contra una
+     * lista blanca.
+     *
+     * <p>Un {@code page}/{@code size} no numérico o un {@code sortBy}/
+     * {@code sortDirection} fuera de la lista blanca produce una
+     * {@link InvalidPageQueryException} (traducida a 400 por el handler global).
+     * El rango de {@code page}/{@code size} lo valida el caso de uso.
+     *
+     * @param request solicitud del servidor con los query params.
+     * @return el query de dominio ya tipado.
+     */
+    public CapabilityPageQuery toPageQuery(ServerRequest request) {
+        int page = parseIntParam(request, "page", DEFAULT_PAGE);
+        int size = parseIntParam(request, "size", DEFAULT_SIZE);
+        CapabilitySortBy sortBy = parseSortBy(request.queryParam("sortBy").orElse(null));
+        CapabilitySortDirection direction =
+                parseSortDirection(request.queryParam("sortDirection").orElse(null));
+        return new CapabilityPageQuery(page, size, sortBy, direction);
+    }
+
+    private int parseIntParam(ServerRequest request, String name, int defaultValue) {
+        String raw = request.queryParam(name).orElse(null);
+        if (raw == null || raw.isBlank()) {
+            return defaultValue;
+        }
+        try {
+            return Integer.parseInt(raw.trim());
+        } catch (NumberFormatException ex) {
+            PageErrorCode code = "size".equals(name)
+                    ? PageErrorCode.SIZE_TOO_SMALL
+                    : PageErrorCode.PAGE_NEGATIVE;
+            throw new InvalidPageQueryException(code);
+        }
+    }
+
+    private CapabilitySortBy parseSortBy(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return CapabilitySortBy.NAME;
+        }
+        return switch (raw.trim()) {
+            case "name" -> CapabilitySortBy.NAME;
+            case "technologyCount" -> CapabilitySortBy.TECHNOLOGY_COUNT;
+            default -> throw new InvalidPageQueryException(PageErrorCode.SORT_BY_INVALID);
+        };
+    }
+
+    private CapabilitySortDirection parseSortDirection(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return CapabilitySortDirection.ASC;
+        }
+        return switch (raw.trim().toLowerCase()) {
+            case "asc" -> CapabilitySortDirection.ASC;
+            case "desc" -> CapabilitySortDirection.DESC;
+            default -> throw new InvalidPageQueryException(PageErrorCode.SORT_DIRECTION_INVALID);
+        };
+    }
+
+    /**
+     * Convierte el {@link PagedResult} de dominio en el DTO de respuesta paginada,
+     * conservando la metadata, el orden y la cantidad de items, y mapeando cada
+     * tecnología a {@link TechnologySummaryResponse} (id + name).
+     *
+     * @param pagedResult resultado paginado del dominio; puede ser {@code null}.
+     * @return el DTO de respuesta paginada, o {@code null} si {@code pagedResult}
+     *         es {@code null}.
+     */
+    public CapabilityPageResponse toPageResponse(PagedResult<CapabilityListItem> pagedResult) {
+        if (pagedResult == null) {
+            return null;
+        }
+        List<CapabilityListItemResponse> content = pagedResult.getContent().stream()
+                .map(this::toListItemResponse)
+                .toList();
+        return new CapabilityPageResponse(
+                pagedResult.getPage(),
+                pagedResult.getSize(),
+                pagedResult.getTotalElements(),
+                pagedResult.getTotalPages(),
+                content);
+    }
+
+    private CapabilityListItemResponse toListItemResponse(CapabilityListItem item) {
+        List<TechnologySummaryResponse> technologies = item.getTechnologies().stream()
+                .map(t -> new TechnologySummaryResponse(t.getId(), t.getName()))
+                .toList();
+        return new CapabilityListItemResponse(
+                item.getId(), item.getName(), item.getDescription(), technologies);
     }
 }

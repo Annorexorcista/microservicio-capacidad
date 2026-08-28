@@ -5,15 +5,25 @@ import com.bootcamp.capability.domain.exception.CapabilityAlreadyExistsException
 import com.bootcamp.capability.domain.exception.DomainErrorCode;
 import com.bootcamp.capability.domain.exception.InvalidCapabilityDataException;
 import com.bootcamp.capability.domain.exception.TechnologiesNotFoundException;
+import com.bootcamp.capability.domain.exception.InvalidPageQueryException;
+import com.bootcamp.capability.domain.exception.PageErrorCode;
 import com.bootcamp.capability.domain.model.Capability;
+import com.bootcamp.capability.domain.model.CapabilityListItem;
+import com.bootcamp.capability.domain.model.CapabilityPageQuery;
+import com.bootcamp.capability.domain.model.PagedResult;
+import com.bootcamp.capability.domain.model.TechnologySummary;
 import com.bootcamp.capability.domain.spi.ICapabilityPersistencePort;
 import com.bootcamp.capability.domain.spi.ITechnologyGatewayPort;
 import reactor.core.publisher.Mono;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Caso de uso del dominio para el registro de capacidades.
@@ -33,6 +43,9 @@ public class CapabilityUseCase implements ICapabilityServicePort {
     private static final int DESCRIPTION_MAX_LENGTH = 90;
     private static final int MIN_TECHNOLOGIES = 3;
     private static final int MAX_TECHNOLOGIES = 20;
+    private static final int MIN_PAGE = 0;
+    private static final int MIN_SIZE = 1;
+    private static final int MAX_SIZE = 100;
 
     private final ICapabilityPersistencePort persistencePort;
     private final ITechnologyGatewayPort technologyGatewayPort;
@@ -49,6 +62,109 @@ public class CapabilityUseCase implements ICapabilityServicePort {
                 .flatMap(this::ensureNameIsUnique)
                 .flatMap(this::ensureTechnologiesExist)
                 .flatMap(persistencePort::save);
+    }
+
+    /**
+     * Lista las capacidades de forma paginada y ordenada, componiendo un único
+     * pipeline reactivo sin llamadas bloqueantes:
+     * <ol>
+     *   <li>valida el rango de {@code page}/{@code size} (Req 4.3-4.6);</li>
+     *   <li>obtiene, en paralelo, la página desde la BD (ya ordenada y paginada)
+     *       y el conteo total (Req 1.1, 1.2);</li>
+     *   <li>si la página está vacía, omite el gateway y retorna un
+     *       {@link PagedResult} vacío con la metadata coherente (Req 1.4, 5.6);</li>
+     *   <li>en caso contrario, enriquece cada capacidad con los nombres de sus
+     *       tecnologías mediante una única llamada por lotes (Req 5).</li>
+     * </ol>
+     *
+     * <p>El orden emitido por {@code findPage} se preserva (Req 2/3/6). El error de
+     * indisponibilidad del Technology_Service se propaga sin capturarse (Req 7.1).
+     */
+    @Override
+    public Mono<PagedResult<CapabilityListItem>> listCapabilities(CapabilityPageQuery query) {
+        return validateQuery(query)
+                .flatMap(validQuery -> Mono.zip(
+                                persistencePort.findPage(validQuery).collectList(),
+                                persistencePort.countAll())
+                        .flatMap(tuple -> {
+                            List<Capability> pageContent = tuple.getT1();
+                            long totalElements = tuple.getT2();
+                            if (pageContent.isEmpty()) {
+                                return Mono.just(new PagedResult<CapabilityListItem>(
+                                        validQuery.getPage(), validQuery.getSize(),
+                                        totalElements, List.of()));
+                            }
+                            return enrichWithTechnologies(pageContent)
+                                    .map(items -> new PagedResult<>(
+                                            validQuery.getPage(), validQuery.getSize(),
+                                            totalElements, items));
+                        }));
+    }
+
+    /**
+     * Valida el rango de los parámetros de paginación en memoria (sin I/O):
+     * {@code page < 0} -> {@code PAGE_NEGATIVE}; {@code size < 1} ->
+     * {@code SIZE_TOO_SMALL}; {@code size > 100} -> {@code SIZE_TOO_LARGE}
+     * (Req 4.3, 4.4, 4.5). Los valores de {@code sortBy}/{@code direction} ya
+     * llegan resueltos a enum (o al default) desde la capa driving.
+     *
+     * @param query parámetros de consulta a validar.
+     * @return un {@link Mono} que emite el query válido, o un
+     *         {@link InvalidPageQueryException} si algún rango falla.
+     */
+    private Mono<CapabilityPageQuery> validateQuery(CapabilityPageQuery query) {
+        return Mono.defer(() -> {
+            if (query.getPage() < MIN_PAGE) {
+                return Mono.error(new InvalidPageQueryException(PageErrorCode.PAGE_NEGATIVE));
+            }
+            if (query.getSize() < MIN_SIZE) {
+                return Mono.error(new InvalidPageQueryException(PageErrorCode.SIZE_TOO_SMALL));
+            }
+            if (query.getSize() > MAX_SIZE) {
+                return Mono.error(new InvalidPageQueryException(PageErrorCode.SIZE_TOO_LARGE));
+            }
+            return Mono.just(query);
+        });
+    }
+
+    /**
+     * Enriquece las capacidades de la página con los nombres de sus tecnologías,
+     * evitando el problema N+1: recolecta todos los {@code technologyId} distintos
+     * de la página (preservando el orden de aparición) y hace una única llamada por
+     * lotes al gateway; con el mapa {@code id -> TechnologySummary} resultante,
+     * asocia a cada capacidad únicamente las tecnologías resueltas (omitiendo las
+     * no devueltas por el service, Req 5.5), preservando el orden de la página.
+     *
+     * @param page capacidades de la página (no vacía).
+     * @return un {@link Mono} con la lista de {@link CapabilityListItem} enriquecidos.
+     */
+    private Mono<List<CapabilityListItem>> enrichWithTechnologies(List<Capability> page) {
+        Set<Long> distinctIds = page.stream()
+                .flatMap(c -> c.getTechnologyIds() == null
+                        ? java.util.stream.Stream.<Long>empty()
+                        : c.getTechnologyIds().stream())
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        return technologyGatewayPort.findTechnologiesByIds(distinctIds)
+                .collectMap(TechnologySummary::getId, Function.identity())
+                .map(byId -> page.stream()
+                        .map(c -> new CapabilityListItem(
+                                c.getId(), c.getName(), c.getDescription(),
+                                resolveTechnologies(c, byId)))
+                        .toList());
+    }
+
+    private List<TechnologySummary> resolveTechnologies(Capability capability,
+                                                        Map<Long, TechnologySummary> byId) {
+        List<Long> ids = capability.getTechnologyIds();
+        if (ids == null) {
+            return List.of();
+        }
+        return ids.stream()
+                .map(byId::get)
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     /**

@@ -2,6 +2,9 @@
 build/
 !gradle/wrapper/gradle-wrapper.jar
 
+# Kiro
+.kiro/
+
 # IDE
 .idea/
 *.iml

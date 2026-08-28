@@ -1,5 +1,6 @@
 package com.bootcamp.capability.domain.spi;
 
+import com.bootcamp.capability.domain.model.TechnologySummary;
 import reactor.core.publisher.Flux;
 
 import java.util.Collection;
@@ -23,4 +24,16 @@ public interface ITechnologyGatewayPort {
      *         (un subconjunto de los solicitados; 0..N elementos).
      */
     Flux<Long> findExistingTechnologyIds(Collection<Long> ids);
+
+    /**
+     * Consulta al microservicio de Tecnología los datos (id y nombre) de las
+     * tecnologías correspondientes a los identificadores proporcionados, en una
+     * única llamada por lotes (evita el problema N+1).
+     *
+     * @param ids identificadores de tecnología distintos a resolver.
+     * @return un {@link Flux} que emite un {@link TechnologySummary} por cada
+     *         tecnología existente devuelta por el service (0..N; subconjunto de
+     *         los solicitados).
+     */
+    Flux<TechnologySummary> findTechnologiesByIds(Collection<Long> ids);
 }

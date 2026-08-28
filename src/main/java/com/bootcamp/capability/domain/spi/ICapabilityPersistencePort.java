@@ -1,6 +1,8 @@
 package com.bootcamp.capability.domain.spi;
 
 import com.bootcamp.capability.domain.model.Capability;
+import com.bootcamp.capability.domain.model.CapabilityPageQuery;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -32,4 +34,23 @@ public interface ICapabilityPersistencePort {
      *         identificador asignado.
      */
     Mono<Capability> save(Capability capability);
+
+    /**
+     * Recupera la página de capacidades ya ordenada y paginada en la base de
+     * datos según los parámetros de consulta (LIMIT/OFFSET y ORDER BY resueltos
+     * en SQL). Cada {@link Capability} emitida incluye sus {@code technologyIds}
+     * ya resueltos; el orden de emisión es el orden de la consulta.
+     *
+     * @param query parámetros de consulta (page, size, sortBy, direction).
+     * @return un {@link Flux} con las capacidades de la página solicitada.
+     */
+    Flux<Capability> findPage(CapabilityPageQuery query);
+
+    /**
+     * Cuenta el total de capacidades existentes, para calcular la metadata de
+     * paginación (totalElements, totalPages).
+     *
+     * @return un {@link Mono} que emite el total de capacidades.
+     */
+    Mono<Long> countAll();
 }

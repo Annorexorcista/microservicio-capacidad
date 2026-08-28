@@ -1,6 +1,9 @@
 package com.bootcamp.capability.domain.api;
 
 import com.bootcamp.capability.domain.model.Capability;
+import com.bootcamp.capability.domain.model.CapabilityListItem;
+import com.bootcamp.capability.domain.model.CapabilityPageQuery;
+import com.bootcamp.capability.domain.model.PagedResult;
 import reactor.core.publisher.Mono;
 
 /**
@@ -22,4 +25,16 @@ public interface ICapabilityServicePort {
      *         asignado, o un error de dominio si alguna validación falla.
      */
     Mono<Capability> registerCapability(Capability capability);
+
+    /**
+     * Lista las capacidades de forma paginada y ordenada según los parámetros de
+     * consulta, enriqueciendo cada capacidad con sus tecnologías (id y nombre)
+     * mediante una única llamada por lotes al Technology_Service.
+     *
+     * @param query parámetros de consulta ya tipados (page, size, sortBy, direction).
+     * @return un {@link Mono} que emite el {@link PagedResult} con la metadata de
+     *         paginación y el contenido de la página, o un error de dominio si los
+     *         parámetros son inválidos o el Technology_Service no está disponible.
+     */
+    Mono<PagedResult<CapabilityListItem>> listCapabilities(CapabilityPageQuery query);
 }

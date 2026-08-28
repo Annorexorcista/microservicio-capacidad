@@ -80,6 +80,9 @@ public class CapabilityHandler {
      *         de capacidades, o propaga el error correspondiente.
      */
     public Mono<ServerResponse> list(ServerRequest request) {
+        if (request.queryParam("ids").filter(v -> !v.isBlank()).isPresent()) {
+            return findByIds(request);
+        }
         return Mono.fromCallable(() -> dtoMapper.toPageQuery(request))
                 .flatMap(servicePort::listCapabilities)
                 .map(dtoMapper::toPageResponse)
@@ -87,5 +90,26 @@ public class CapabilityHandler {
                         .ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(response));
+    }
+
+    /**
+     * Recupera las capacidades correspondientes al query param {@code ids} (CSV),
+     * cada una con sus tecnologías (id + name). Pensado para el consumo entre
+     * microservicios (por ejemplo, el de Bootcamp). Responde {@code 200 OK} con la
+     * lista de capacidades; sin bloqueos. Un {@code ids} malformado se traduce a
+     * 400 por el handler global.
+     *
+     * @param request la solicitud del servidor con el query param {@code ids}.
+     * @return un {@link Mono} que emite la respuesta {@code 200 OK} con la lista.
+     */
+    private Mono<ServerResponse> findByIds(ServerRequest request) {
+        return Mono.fromCallable(() -> dtoMapper.parseIds(request))
+                .flatMapMany(servicePort::findCapabilitiesByIds)
+                .map(dtoMapper::toListItemResponse)
+                .collectList()
+                .flatMap(list -> ServerResponse
+                        .ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(list));
     }
 }

@@ -240,4 +240,34 @@ class CapabilityPersistenceAdapterFindPageIT {
                 .expectNext(4L)
                 .verifyComplete();
     }
+
+    // --- findByIds: consulta por identificadores para consumo entre microservicios ---
+
+    @Test
+    @DisplayName("findByIds recupera solo las capacidades solicitadas con sus technologyIds")
+    void findByIdsReturnsRequestedWithTechnologies() {
+        Long alfaId = capabilityRepository.findAll()
+                .filter(c -> c.getName().equals("Alfa"))
+                .map(c -> c.getId()).blockFirst();
+        Long betaId = capabilityRepository.findAll()
+                .filter(c -> c.getName().equals("Beta"))
+                .map(c -> c.getId()).blockFirst();
+
+        StepVerifier.create(adapter.findByIds(List.of(alfaId, betaId))
+                        .sort((a, b) -> a.getName().compareTo(b.getName()))
+                        .collectList())
+                .assertNext(list -> {
+                    assertThat(list).extracting(Capability::getName).containsExactly("Alfa", "Beta");
+                    assertThat(list.get(0).getTechnologyIds()).containsExactly(1L);
+                    assertThat(list.get(1).getTechnologyIds()).containsExactlyInAnyOrder(1L, 2L, 3L);
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("findByIds con lista vacía no consulta la BD")
+    void findByIdsEmpty() {
+        StepVerifier.create(adapter.findByIds(List.of()))
+                .verifyComplete();
+    }
 }

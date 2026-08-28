@@ -5,6 +5,8 @@ import com.bootcamp.capability.domain.model.CapabilityPageQuery;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Collection;
+
 /**
  * Puerto de salida (spi) del dominio para la persistencia de capacidades.
  *
@@ -53,4 +55,14 @@ public interface ICapabilityPersistencePort {
      * @return un {@link Mono} que emite el total de capacidades.
      */
     Mono<Long> countAll();
+
+    /**
+     * Recupera las capacidades cuyos identificadores están en la colección dada.
+     * Cada {@link Capability} emitida incluye sus {@code technologyIds} resueltos.
+     * Emite solo las que existen (0..N; subconjunto de las solicitadas).
+     *
+     * @param ids identificadores de capacidad a recuperar.
+     * @return un {@link Flux} con las capacidades existentes.
+     */
+    Flux<Capability> findByIds(Collection<Long> ids);
 }

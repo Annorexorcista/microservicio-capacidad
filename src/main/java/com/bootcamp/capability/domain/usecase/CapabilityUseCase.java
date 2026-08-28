@@ -14,8 +14,10 @@ import com.bootcamp.capability.domain.model.PagedResult;
 import com.bootcamp.capability.domain.model.TechnologySummary;
 import com.bootcamp.capability.domain.spi.ICapabilityPersistencePort;
 import com.bootcamp.capability.domain.spi.ITechnologyGatewayPort;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -125,6 +127,20 @@ public class CapabilityUseCase implements ICapabilityServicePort {
             }
             return Mono.just(query);
         });
+    }
+
+    /**
+     * Recupera las capacidades por id y las enriquece con sus tecnologías (id y
+     * nombre) reutilizando el mismo enriquecimiento por lotes del listado (evita
+     * N+1). Si no se solicita ningún id o ninguna capacidad existe, emite vacío.
+     */
+    @Override
+    public Flux<CapabilityListItem> findCapabilitiesByIds(Collection<Long> ids) {
+        return persistencePort.findByIds(ids)
+                .collectList()
+                .flatMapMany(capabilities -> capabilities.isEmpty()
+                        ? Flux.empty()
+                        : enrichWithTechnologies(capabilities).flatMapMany(Flux::fromIterable));
     }
 
     /**

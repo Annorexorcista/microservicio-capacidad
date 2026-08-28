@@ -146,6 +146,26 @@ public class CapabilityPersistenceAdapter implements ICapabilityPersistencePort 
      * Construye el SQL de la página traduciendo {@code sortBy}/{@code direction}
      * a fragmentos fijos de una lista blanca (sin interpolar entrada de usuario).
      */
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Recupera las entidades por id con {@code findAllById} (derived del
+     * repositorio) y resuelve los {@code technologyIds} de cada una con
+     * {@code findByCapabilityId}, igual que {@link #findPage}. Devuelve solo las
+     * capacidades existentes; un id inexistente simplemente no aparece.
+     */
+    @Override
+    public Flux<Capability> findByIds(java.util.Collection<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Flux.empty();
+        }
+        return capabilityRepository.findAllById(ids)
+                .flatMap(entity -> capabilityTechnologyRepository.findByCapabilityId(entity.getId())
+                        .map(CapabilityTechnologyEntity::getTechnologyId)
+                        .collectList()
+                        .map(techIds -> mapper.toDomain(entity, techIds)));
+    }
+
     private String buildPageSql(CapabilitySortBy sortBy, CapabilitySortDirection direction) {
         String dir = direction == CapabilitySortDirection.DESC ? "DESC" : "ASC";
         if (sortBy == CapabilitySortBy.TECHNOLOGY_COUNT) {

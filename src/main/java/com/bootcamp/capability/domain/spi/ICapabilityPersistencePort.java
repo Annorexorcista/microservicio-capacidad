@@ -65,4 +65,16 @@ public interface ICapabilityPersistencePort {
      * @return un {@link Flux} con las capacidades existentes.
      */
     Flux<Capability> findByIds(Collection<Long> ids);
+
+    /**
+     * Elimina las capacidades indicadas junto con sus asociaciones a tecnologías,
+     * de forma atómica (transaccional), y devuelve los identificadores de las
+     * tecnologías que quedaron huérfanas: aquellas que estaban asociadas a alguna
+     * de las capacidades borradas y que ya no son referenciadas por ninguna otra
+     * capacidad restante.
+     *
+     * @param ids identificadores de capacidad a eliminar.
+     * @return un {@link Flux} con los identificadores de tecnología huérfanos.
+     */
+    Flux<Long> deleteByIdsReturningOrphanTechnologyIds(Collection<Long> ids);
 }

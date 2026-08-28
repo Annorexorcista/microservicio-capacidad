@@ -112,4 +112,20 @@ public class CapabilityHandler {
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(list));
     }
+
+    /**
+     * Elimina las capacidades indicadas en el query param {@code ids} (CSV) y, en
+     * cascada, las tecnologías que queden huérfanas. Pensado para el consumo entre
+     * microservicios durante la eliminación de un bootcamp. Responde
+     * {@code 204 No Content}; sin bloqueos. Un error del gateway de Tecnología se
+     * traduce a 502 por el handler global.
+     *
+     * @param request la solicitud del servidor con el query param {@code ids}.
+     * @return un {@link Mono} que emite la respuesta {@code 204 No Content}.
+     */
+    public Mono<ServerResponse> deleteByIds(ServerRequest request) {
+        return Mono.fromCallable(() -> dtoMapper.parseIds(request))
+                .flatMap(servicePort::deleteCapabilitiesByIds)
+                .then(ServerResponse.noContent().build());
+    }
 }

@@ -144,6 +144,28 @@ public class CapabilityUseCase implements ICapabilityServicePort {
     }
 
     /**
+     * Elimina las capacidades indicadas y, en cascada, las tecnologías que queden
+     * huérfanas. La persistencia borra las capacidades y sus asociaciones de forma
+     * transaccional y devuelve las tecnologías huérfanas; esas se eliminan en el
+     * microservicio de Tecnología a través del gateway. Si no se indica ningún id,
+     * completa sin efectos.
+     *
+     * @param ids identificadores de capacidad a eliminar.
+     * @return un {@link Mono} que completa cuando el borrado y su cascada terminan.
+     */
+    @Override
+    public Mono<Void> deleteCapabilitiesByIds(Collection<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Mono.empty();
+        }
+        return persistencePort.deleteByIdsReturningOrphanTechnologyIds(ids)
+                .collectList()
+                .flatMap(orphanTechnologyIds -> orphanTechnologyIds.isEmpty()
+                        ? Mono.empty()
+                        : technologyGatewayPort.deleteTechnologiesByIds(orphanTechnologyIds));
+    }
+
+    /**
      * Enriquece las capacidades de la página con los nombres de sus tecnologías,
      * evitando el problema N+1: recolecta todos los {@code technologyId} distintos
      * de la página (preservando el orden de aparición) y hace una única llamada por

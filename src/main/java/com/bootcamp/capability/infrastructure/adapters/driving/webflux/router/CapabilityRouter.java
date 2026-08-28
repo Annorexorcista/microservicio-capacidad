@@ -168,12 +168,46 @@ public class CapabilityRouter {
                                             content = @Content(
                                                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                                                     schema = @Schema(implementation = ErrorResponse.class)))
+                            })),
+            @RouterOperation(
+                    path = CAPABILITIES_PATH,
+                    method = RequestMethod.DELETE,
+                    beanClass = ICapabilityServicePort.class,
+                    beanMethod = "deleteCapabilitiesByIds",
+                    operation = @Operation(
+                            operationId = "deleteCapabilitiesByIds",
+                            summary = "Elimina capacidades por identificadores (con cascada)",
+                            description = "Elimina las capacidades cuyos identificadores se indican "
+                                    + "en el parámetro de consulta 'ids' (separados por comas, por "
+                                    + "ejemplo ?ids=1,2,3), junto con sus asociaciones, y elimina en "
+                                    + "cascada las tecnologías que queden huérfanas (sin ninguna otra "
+                                    + "capacidad que las referencie). Pensado para la eliminación en "
+                                    + "cascada de un bootcamp.",
+                            parameters = {
+                                    @Parameter(
+                                            name = "ids",
+                                            in = ParameterIn.QUERY,
+                                            description = "Identificadores de capacidad separados por comas",
+                                            schema = @Schema(type = "string"))
+                            },
+                            responses = {
+                                    @ApiResponse(
+                                            responseCode = "204",
+                                            description = "Capacidades eliminadas (sin contenido)"),
+                                    @ApiResponse(
+                                            responseCode = "502",
+                                            description = "El Technology_Service no está disponible para "
+                                                    + "eliminar las tecnologías huérfanas",
+                                            content = @Content(
+                                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                                    schema = @Schema(implementation = ErrorResponse.class)))
                             }))
     })
     public RouterFunction<ServerResponse> capabilityRoutes(CapabilityHandler handler) {
         return RouterFunctions.route()
                 .POST(CAPABILITIES_PATH, accept(MediaType.APPLICATION_JSON), handler::register)
                 .GET(CAPABILITIES_PATH, accept(MediaType.APPLICATION_JSON), handler::list)
+                .DELETE(CAPABILITIES_PATH, handler::deleteByIds)
                 .build();
     }
 }

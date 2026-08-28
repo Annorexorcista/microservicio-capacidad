@@ -53,4 +53,18 @@ public interface ICapabilityServicePort {
      *         existentes; vacío si {@code ids} es vacío.
      */
     Flux<CapabilityListItem> findCapabilitiesByIds(Collection<Long> ids);
+
+    /**
+     * Elimina las capacidades indicadas junto con sus asociaciones a tecnologías,
+     * y elimina en cascada las tecnologías que queden huérfanas (sin ninguna otra
+     * capacidad que las referencie), delegando ese borrado en el microservicio de
+     * Tecnología. Pensado para la eliminación en cascada de un bootcamp: el
+     * microservicio de Bootcamp solicita borrar las capacidades que quedaron
+     * huérfanas.
+     *
+     * @param ids identificadores de capacidad a eliminar.
+     * @return un {@link Mono} que completa cuando el borrado (incluida la cascada
+     *         hacia Tecnología) ha terminado.
+     */
+    Mono<Void> deleteCapabilitiesByIds(Collection<Long> ids);
 }

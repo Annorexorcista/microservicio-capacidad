@@ -166,6 +166,55 @@ public class CapabilityPersistenceAdapter implements ICapabilityPersistencePort 
                         .map(techIds -> mapper.toDomain(entity, techIds)));
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Dentro de una transacción reactiva: recolecta los {@code technologyId}
+     * distintos asociados a las capacidades a borrar; elimina las asociaciones y
+     * las capacidades; y calcula las tecnologías huérfanas comprobando cuáles de
+     * esos {@code technologyId} ya no son referenciados por ninguna asociación
+     * restante. Emite los identificadores de tecnología huérfanos.
+     */
+    @Override
+    public Flux<Long> deleteByIdsReturningOrphanTechnologyIds(java.util.Collection<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Flux.empty();
+        }
+        Mono<java.util.List<Long>> pipeline = collectCandidateTechnologyIds(ids)
+                // 1. technologyId distintos asociados a las capacidades a borrar
+                .flatMap(candidates ->
+                        // 2. borrar asociaciones y capacidades
+                        capabilityTechnologyRepository.deleteByCapabilityIdIn(ids)
+                                .then(capabilityRepository.deleteAllById(ids))
+                                // 3. de las candidatas, ver cuáles siguen referenciadas
+                                .then(referencedAmong(candidates))
+                                .map(stillReferenced -> candidates.stream()
+                                        .filter(techId -> !stillReferenced.contains(techId))
+                                        .toList()));
+
+        return pipeline.as(transactionalOperator::transactional)
+                .flatMapMany(Flux::fromIterable);
+    }
+
+    /** Recolecta los technologyId distintos asociados a las capacidades dadas. */
+    private Mono<java.util.List<Long>> collectCandidateTechnologyIds(java.util.Collection<Long> capabilityIds) {
+        return Flux.fromIterable(capabilityIds)
+                .concatMap(capabilityTechnologyRepository::findByCapabilityId)
+                .map(CapabilityTechnologyEntity::getTechnologyId)
+                .distinct()
+                .collectList();
+    }
+
+    /** De las tecnologías candidatas, devuelve el conjunto que aún tiene alguna asociación. */
+    private Mono<java.util.Set<Long>> referencedAmong(java.util.List<Long> candidateTechnologyIds) {
+        if (candidateTechnologyIds.isEmpty()) {
+            return Mono.just(java.util.Set.of());
+        }
+        return capabilityTechnologyRepository.findByTechnologyIdIn(candidateTechnologyIds)
+                .map(CapabilityTechnologyEntity::getTechnologyId)
+                .collect(java.util.stream.Collectors.toSet());
+    }
+
     private String buildPageSql(CapabilitySortBy sortBy, CapabilitySortDirection direction) {
         String dir = direction == CapabilitySortDirection.DESC ? "DESC" : "ASC";
         if (sortBy == CapabilitySortBy.TECHNOLOGY_COUNT) {

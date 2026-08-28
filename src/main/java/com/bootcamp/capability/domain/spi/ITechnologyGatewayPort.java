@@ -2,6 +2,7 @@ package com.bootcamp.capability.domain.spi;
 
 import com.bootcamp.capability.domain.model.TechnologySummary;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.Collection;
 
@@ -36,4 +37,15 @@ public interface ITechnologyGatewayPort {
      *         los solicitados).
      */
     Flux<TechnologySummary> findTechnologiesByIds(Collection<Long> ids);
+
+    /**
+     * Solicita al microservicio de Tecnología eliminar las tecnologías indicadas.
+     * Pensado para la eliminación en cascada: cuando se borran capacidades, las
+     * tecnologías que quedan huérfanas (sin ninguna capacidad que las referencie)
+     * se eliminan también.
+     *
+     * @param ids identificadores de tecnología a eliminar.
+     * @return un {@link Mono} que completa cuando el borrado ha terminado.
+     */
+    Mono<Void> deleteTechnologiesByIds(Collection<Long> ids);
 }

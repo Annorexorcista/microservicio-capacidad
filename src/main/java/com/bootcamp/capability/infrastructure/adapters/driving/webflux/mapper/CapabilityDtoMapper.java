@@ -13,34 +13,17 @@ import com.bootcamp.capability.infrastructure.adapters.driving.webflux.dto.Capab
 import com.bootcamp.capability.infrastructure.adapters.driving.webflux.dto.CapabilityRequest;
 import com.bootcamp.capability.infrastructure.adapters.driving.webflux.dto.CapabilityResponse;
 import com.bootcamp.capability.infrastructure.adapters.driving.webflux.dto.TechnologySummaryResponse;
+import com.bootcamp.capability.infrastructure.adapters.driving.webflux.exception.InvalidIdsQueryException;
+import com.bootcamp.capability.infrastructure.adapters.driving.webflux.exception.RequestErrorCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 
+import java.util.Arrays;
 import java.util.List;
 
-/**
- * Mapper puro (sin I/O ni tipos reactivos) que convierte entre los DTOs de la
- * capa driving (WebFlux) y el modelo de dominio {@link Capability}.
- *
- * <p>Las conversiones son transformaciones en memoria; se invocan dentro del
- * pipeline reactivo del handler (por ejemplo con {@code map}), por lo que este
- * componente no conoce Project Reactor ni detalles de HTTP. El modelo de dominio
- * permanece libre de anotaciones de framework.
- */
 @Component
 public class CapabilityDtoMapper {
 
-    /**
-     * Convierte un DTO de solicitud en modelo de dominio.
-     *
-     * <p>El {@code id} se fija en {@code null} porque la capacidad aún no ha sido
-     * persistida; la base de datos asignará el identificador durante el INSERT. La
-     * normalización (trim) y las validaciones se realizan en el dominio.
-     *
-     * @param request DTO recibido en la solicitud; puede ser {@code null}.
-     * @return el modelo de dominio equivalente con {@code id} nulo, o {@code null}
-     *         si {@code request} es {@code null}.
-     */
     public Capability toDomain(CapabilityRequest request) {
         if (request == null) {
             return null;
@@ -48,13 +31,6 @@ public class CapabilityDtoMapper {
         return new Capability(null, request.name(), request.description(), request.technologyIds());
     }
 
-    /**
-     * Convierte un modelo de dominio ya persistido en DTO de respuesta.
-     *
-     * @param capability modelo de dominio a convertir; puede ser {@code null}.
-     * @return el DTO de respuesta equivalente, o {@code null} si {@code capability}
-     *         es {@code null}.
-     */
     public CapabilityResponse toResponse(Capability capability) {
         if (capability == null) {
             return null;
@@ -69,21 +45,6 @@ public class CapabilityDtoMapper {
     private static final int DEFAULT_PAGE = 0;
     private static final int DEFAULT_SIZE = 10;
 
-    /**
-     * Construye un {@link CapabilityPageQuery} de dominio a partir de los query
-     * params de la solicitud, aplicando los defaults (page=0, size=10,
-     * sortBy=name, sortDirection=asc) cuando faltan y traduciendo
-     * {@code sortBy}/{@code sortDirection} a los enums de dominio contra una
-     * lista blanca.
-     *
-     * <p>Un {@code page}/{@code size} no numérico o un {@code sortBy}/
-     * {@code sortDirection} fuera de la lista blanca produce una
-     * {@link InvalidPageQueryException} (traducida a 400 por el handler global).
-     * El rango de {@code page}/{@code size} lo valida el caso de uso.
-     *
-     * @param request solicitud del servidor con los query params.
-     * @return el query de dominio ya tipado.
-     */
     public CapabilityPageQuery toPageQuery(ServerRequest request) {
         int page = parseIntParam(request, "page", DEFAULT_PAGE);
         int size = parseIntParam(request, "size", DEFAULT_SIZE);
@@ -130,15 +91,6 @@ public class CapabilityDtoMapper {
         };
     }
 
-    /**
-     * Convierte el {@link PagedResult} de dominio en el DTO de respuesta paginada,
-     * conservando la metadata, el orden y la cantidad de items, y mapeando cada
-     * tecnología a {@link TechnologySummaryResponse} (id + name).
-     *
-     * @param pagedResult resultado paginado del dominio; puede ser {@code null}.
-     * @return el DTO de respuesta paginada, o {@code null} si {@code pagedResult}
-     *         es {@code null}.
-     */
     public CapabilityPageResponse toPageResponse(PagedResult<CapabilityListItem> pagedResult) {
         if (pagedResult == null) {
             return null;
@@ -154,34 +106,43 @@ public class CapabilityDtoMapper {
                 content);
     }
 
-    /**
-     * Parsea el query param {@code ids} (CSV de enteros, p. ej. {@code 1,2,3}) a
-     * una lista de identificadores. Devuelve lista vacía si el parámetro falta o
-     * está en blanco. Un valor no numérico produce {@link NumberFormatException},
-     * que el handler global traduce a 400.
-     *
-     * @param request solicitud del servidor.
-     * @return la lista de ids solicitados (posiblemente vacía).
-     */
     public List<Long> parseIds(ServerRequest request) {
-        String raw = request.queryParam("ids").orElse(null);
+        return request.queryParam("ids")
+                .map(this::parseIds)
+                .orElseThrow(() -> new InvalidIdsQueryException(RequestErrorCode.IDS_REQUIRED));
+    }
+
+    private List<Long> parseIds(String raw) {
         if (raw == null || raw.isBlank()) {
-            return List.of();
+            throw new InvalidIdsQueryException(RequestErrorCode.IDS_REQUIRED);
         }
-        return java.util.Arrays.stream(raw.split(","))
+
+        return Arrays.stream(raw.split(",", -1))
                 .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .map(Long::parseLong)
+                .map(this::parsePositiveId)
+                .distinct()
                 .toList();
     }
 
-    /**
-     * Convierte un {@link CapabilityListItem} de dominio en su DTO de respuesta
-     * (id, name, description y tecnologías con id + name).
-     *
-     * @param item item de dominio a convertir.
-     * @return el DTO de respuesta equivalente.
-     */
+    private Long parsePositiveId(String segment) {
+        if (segment.isEmpty()) {
+            throw new InvalidIdsQueryException(RequestErrorCode.ID_EMPTY);
+        }
+        if (!segment.matches("[0-9]+")) {
+            throw new InvalidIdsQueryException(RequestErrorCode.ID_NOT_NUMERIC, segment);
+        }
+
+        try {
+            long id = Long.parseLong(segment);
+            if (id <= 0) {
+                throw new InvalidIdsQueryException(RequestErrorCode.ID_NOT_POSITIVE, segment);
+            }
+            return id;
+        } catch (NumberFormatException exception) {
+            throw new InvalidIdsQueryException(RequestErrorCode.ID_OUT_OF_RANGE, exception, segment);
+        }
+    }
+
     public CapabilityListItemResponse toListItemResponse(CapabilityListItem item) {
         List<TechnologySummaryResponse> technologies = item.getTechnologies().stream()
                 .map(t -> new TechnologySummaryResponse(t.getId(), t.getName()))

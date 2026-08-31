@@ -11,17 +11,6 @@ import reactor.core.publisher.Mono;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-/**
- * Adaptador driven que implementa {@link ITechnologyGatewayPort} consultando al
- * microservicio de Tecnología de forma no bloqueante mediante {@link WebClient}.
- *
- * <p>Consume {@code GET /api/v1/technologies?ids=1,2,3}, que devuelve
- * {@code [{id, name, description}]} únicamente de las tecnologías existentes.
- *
- * <p>Es una clase plana (sin {@code @Component}); el cableado del bean se realiza
- * en {@code BeanConfiguration}, y el {@link WebClient} con su {@code baseUrl} se
- * configura en {@code WebClientConfig}.
- */
 public class TechnologyGatewayAdapter implements ITechnologyGatewayPort {
 
     private final WebClient webClient;

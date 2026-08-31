@@ -25,30 +25,11 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
-/**
- * Router de la capa driving (WebFlux funcional) que declara las rutas del
- * recurso {@code capabilities} y las asocia al {@link CapabilityHandler}.
- *
- * <p>Los endpoints funcionales ({@code RouterFunction}) no exponen su contrato
- * automáticamente a springdoc como lo hacen los {@code @RestController}. Por ello
- * la documentación OpenAPI del endpoint se declara de forma explícita con las
- * anotaciones {@link RouterOperations}/{@link RouterOperation} sobre el método
- * que produce el bean {@code RouterFunction}, describiendo el esquema de la
- * solicitud, el de la respuesta {@code 201} y los errores {@code 400}/{@code 409}/
- * {@code 502} (Requerimiento 9.1).
- */
 @Configuration
 public class CapabilityRouter {
 
     private static final String CAPABILITIES_PATH = "/api/v1/capabilities";
 
-    /**
-     * Declara la ruta {@code POST /api/v1/capabilities} (que acepta
-     * {@code application/json}) y la delega en {@link CapabilityHandler#register}.
-     *
-     * @param handler handler que procesa el registro de capacidades.
-     * @return la {@link RouterFunction} con la ruta de registro configurada.
-     */
     @Bean
     @RouterOperations({
             @RouterOperation(
@@ -157,7 +138,7 @@ public class CapabilityRouter {
                                                     schema = @Schema(implementation = CapabilityPageResponse.class))),
                                     @ApiResponse(
                                             responseCode = "400",
-                                            description = "Parámetros de paginación u ordenamiento inválidos",
+                                            description = "Parámetros de paginación, ordenamiento o ids inválidos",
                                             content = @Content(
                                                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                                                     schema = @Schema(implementation = ErrorResponse.class))),
@@ -168,12 +149,54 @@ public class CapabilityRouter {
                                             content = @Content(
                                                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                                                     schema = @Schema(implementation = ErrorResponse.class)))
+                            })),
+            @RouterOperation(
+                    path = CAPABILITIES_PATH,
+                    method = RequestMethod.DELETE,
+                    beanClass = ICapabilityServicePort.class,
+                    beanMethod = "deleteCapabilitiesByIds",
+                    operation = @Operation(
+                            operationId = "deleteCapabilitiesByIds",
+                            summary = "Elimina capacidades por identificadores (con cascada)",
+                            description = "Elimina las capacidades cuyos identificadores se indican "
+                                    + "en el parámetro de consulta 'ids' (separados por comas, por "
+                                    + "ejemplo ?ids=1,2,3), junto con sus asociaciones, y elimina en "
+                                    + "cascada las tecnologías que queden huérfanas (sin ninguna otra "
+                                    + "capacidad que las referencie). Pensado para la eliminación en "
+                                    + "cascada de un bootcamp.",
+                            parameters = {
+                                    @Parameter(
+                                            name = "ids",
+                                            in = ParameterIn.QUERY,
+                                            required = true,
+                                            description = "Identificadores de capacidad separados por comas",
+                                            schema = @Schema(type = "string"))
+                            },
+                            responses = {
+                                    @ApiResponse(
+                                            responseCode = "204",
+                                            description = "Capacidades eliminadas (sin contenido)"),
+                                    @ApiResponse(
+                                            responseCode = "400",
+                                            description = "El parámetro ids es obligatorio o contiene "
+                                                    + "identificadores inválidos",
+                                            content = @Content(
+                                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                                    schema = @Schema(implementation = ErrorResponse.class))),
+                                    @ApiResponse(
+                                            responseCode = "502",
+                                            description = "El Technology_Service no está disponible para "
+                                                    + "eliminar las tecnologías huérfanas",
+                                            content = @Content(
+                                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                                    schema = @Schema(implementation = ErrorResponse.class)))
                             }))
     })
     public RouterFunction<ServerResponse> capabilityRoutes(CapabilityHandler handler) {
         return RouterFunctions.route()
                 .POST(CAPABILITIES_PATH, accept(MediaType.APPLICATION_JSON), handler::register)
                 .GET(CAPABILITIES_PATH, accept(MediaType.APPLICATION_JSON), handler::list)
+                .DELETE(CAPABILITIES_PATH, handler::deleteByIds)
                 .build();
     }
 }

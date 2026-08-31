@@ -1,18 +1,5 @@
 package com.bootcamp.capability.domain.model;
 
-/**
- * Parámetros de consulta ya tipados para el listado paginado y ordenado de
- * capacidades.
- *
- * <p>Modelo de dominio puro e inmutable, sin anotaciones de framework. La capa
- * driving construye este objeto a partir de los query params (aplicando los
- * defaults y traduciendo {@code sortBy}/{@code sortDirection} a los enums de
- * dominio contra una lista blanca); el caso de uso valida el rango de
- * {@code page}/{@code size}.
- *
- * @see CapabilitySortBy
- * @see CapabilitySortDirection
- */
 public final class CapabilityPageQuery {
 
     private final int page;

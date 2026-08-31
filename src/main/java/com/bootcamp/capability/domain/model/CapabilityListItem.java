@@ -2,14 +2,6 @@ package com.bootcamp.capability.domain.model;
 
 import java.util.List;
 
-/**
- * Capacidad enriquecida para el listado: incluye, además de sus datos básicos, el
- * listado de sus tecnologías con id y nombre ({@link TechnologySummary}).
- *
- * <p>Modelo de dominio puro e inmutable, sin anotaciones de framework. El caso de
- * uso lo construye tras enriquecer cada capacidad de la página con los nombres de
- * sus tecnologías resueltos mediante la llamada por lotes al Technology_Service.
- */
 public final class CapabilityListItem {
 
     private final Long id;
